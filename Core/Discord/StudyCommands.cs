@@ -92,7 +92,7 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
         IReadOnlyList<StudySession> sessions = await store.GetHistoryAsync(guildId, Context.User.Id, limit);
         if (sessions.Count == 0)
         {
-            await RespondAsync("You do not have any completed study sessions yet.", ephemeral: true);
+            await RespondAsync("You do not have any completed study sessions yet.");
             return;
         }
 
@@ -113,7 +113,7 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
             embed.AddField(DiscordTimestamp(session.StartedAtUtc, "d"), value);
         }
 
-        await RespondAsync(embed: embed.Build(), ephemeral: true);
+        await RespondAsync(embed: embed.Build());
     }
 
     [SlashCommand("stats", "View your study stats")]
@@ -129,7 +129,8 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
 
         StudyUserStats stats = await store.GetUserStatsAsync(guildId, Context.User.Id, period);
         EmbedBuilder embed = new EmbedBuilder()
-            .WithTitle($"Your study stats - {PeriodLabel(period)}")
+            .WithTitle($"{Context.User.GlobalName ?? Context.User.Username}'s study stats - {PeriodLabel(period)}")
+            .WithDescription($"Stats for {Context.User.Mention}")
             .WithColor(Color.Teal)
             .AddField("Sessions", stats.Sessions.ToString(), inline: true)
             .AddField("Total time", FormatDuration(stats.TotalTime), inline: true);
@@ -143,7 +144,7 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
             embed.AddField("By subject", FormatSubjectStats(stats.Subjects));
         }
 
-        await RespondAsync(embed: embed.Build(), ephemeral: true);
+        await RespondAsync(embed: embed.Build());
     }
 
     [SlashCommand("leaderboard", "View the server study leaderboard")]
