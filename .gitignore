@@ -1,0 +1,8 @@
+bin/
+obj/
+.appdata/
+.dotnet/
+.nuget/
+logs/
+Data/study-sessions.json
+.env

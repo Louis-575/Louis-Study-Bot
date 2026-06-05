@@ -1,0 +1,10 @@
+bin/
+obj/
+.appdata/
+.dotnet/
+.nuget/
+logs/
+Data/
+.env
+*.user
+*.suo

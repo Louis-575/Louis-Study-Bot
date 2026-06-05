@@ -1,0 +1,25 @@
+name: LouisStudyBot
+
+services:
+  louis-study-bot:
+    container_name: LouisStudyBot
+    build:
+      context: ../..
+      dockerfile: Install/Docker/dockerfile
+    restart: unless-stopped
+    volumes:
+      - ../..:/source
+      - ../../Data:/app/Data
+      - ../../logs:/app/logs
+      - ../../.env:/app/.env
+    environment:
+      - DOTNET_ENVIRONMENT=Production
+    env_file:
+      - ../../.env
+    networks:
+      - louis-study-bot-network
+
+networks:
+  louis-study-bot-network:
+    name: louis-study-bot-network
+    driver: bridge

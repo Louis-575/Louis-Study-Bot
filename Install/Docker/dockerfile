@@ -1,0 +1,22 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /source
+
+COPY . .
+
+RUN dotnet restore LouisStudyBot.csproj
+RUN dotnet publish LouisStudyBot.csproj -c Release -o /app
+
+# Runtime stage uses the SDK so mounted source can be rebuilt without rebuilding
+# the whole Docker image.
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app .
+
+COPY Install/Docker/startup.sh /app/startup.sh
+RUN sed -i 's/\r$//' /app/startup.sh && chmod +x /app/startup.sh
+
+ENTRYPOINT ["/bin/bash", "/app/startup.sh"]
