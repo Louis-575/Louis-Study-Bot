@@ -3,6 +3,20 @@ namespace LouisStudyBot.Core.Discord;
 [Group("study", "Track study sessions and study stats")]
 public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleBase<SocketInteractionContext>
 {
+
+    [SlashCommand("help", "Help and Study Bot info")]
+    public async Task HelpAsync()
+    {
+        EmbedBuilder embed = new EmbedBuilder()
+            .WithTitle("Study Bot Help")
+            .WithDescription($"Help and Study Bot info")
+            .AddField("Commands", "- `/study start` begins a timed study session, with an optional subject tag.\n- `/study end` opens a form asking what you studied and which subject tag to use.\n- `/study history` shows your recent completed sessions.\n- `/study stats` shows your study totals and groups them by subject.\n- `/study leaderboard` shows daily, weekly, and lifetime server leaderboards by time or session count.\n- `/study help` shows this embed.", inline: true)
+            .AddField("Github", "https://github.com/Louis-575/Louis-Study-Bot", inline: true)
+            .WithColor(Color.Red);
+
+        await RespondAsync(embed: embed.Build(), ephemeral: true);
+    }   
+
     [SlashCommand("start", "Begin a study session")]
     public async Task StartAsync(
         [Summary("subject", "Optional subject tag for this study session")]
