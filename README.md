@@ -1,13 +1,12 @@
 # Louis Study Bot
 
-A separate Discord study tracker and timer bot.
+A simple Discord study tracker and timer bot.
 
 ## Features
 
 - `/study start` begins a timed study session.
 - `/study end` opens a form asking what you studied and which subject tag to use.
 - Sessions are tracked separately per user and per server.
-- Sessions are automatically ended after 24 hours.
 - `/study history` shows your recent completed sessions.
 - `/study stats` shows your study totals and groups them by subject.
 - `/study leaderboard` shows daily, weekly, and lifetime server leaderboards by time or session count.
