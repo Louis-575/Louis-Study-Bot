@@ -4,7 +4,10 @@ namespace LouisStudyBot.Core.Discord;
 public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("start", "Begin a study session")]
-    public async Task StartAsync()
+    public async Task StartAsync(
+        [Summary("subject", "Optional subject tag for this study session")]
+        [Autocomplete(typeof(SubjectAutocompleteHandler))]
+        string subject = "")
     {
         if (!TryGetGuildId(out ulong guildId))
         {
@@ -12,7 +15,7 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
             return;
         }
 
-        StudyStartResult result = await store.StartSessionAsync(guildId, Context.User.Id);
+        StudyStartResult result = await store.StartSessionAsync(guildId, Context.User.Id, subject);
         if (!result.Started)
         {
             await RespondAsync(
@@ -24,6 +27,7 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
         EmbedBuilder embed = new EmbedBuilder()
             .WithTitle("Study session started")
             .WithDescription($"Started {DiscordTimestamp(result.Session.StartedAtUtc, "F")}.\nUse `/study end` when you are done.")
+            .AddField("Subject", result.Session.Tag, inline: true)
             .WithColor(Color.Green);
 
         await RespondAsync(embed: embed.Build(), ephemeral: true);
@@ -45,7 +49,7 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
             return;
         }
 
-        Modal modal = new ModalBuilder()
+        ModalBuilder modalBuilder = new ModalBuilder()
             .WithTitle("End study session")
             .WithCustomId("study:end")
             .AddTextInput(
@@ -54,14 +58,21 @@ public sealed class StudyCommands(IStudySessionStore store) : InteractionModuleB
                 style: TextInputStyle.Paragraph,
                 placeholder: "Example: Finished vectors worksheet and reviewed mistakes.",
                 maxLength: 1000,
-                required: true)
+                required: true);
+
+        string? tagValue = active.Tag.Equals("Not Specified", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : active.Tag;
+
+        Modal modal = modalBuilder
             .AddTextInput(
-                label: "Subject tag",
+                label: "Subject tag (optional)",
                 customId: "tag",
                 style: TextInputStyle.Short,
-                placeholder: "Example: Maths",
+                placeholder: "Leave blank to keep the start subject.",
                 maxLength: 50,
-                required: true)
+                required: false,
+                value: tagValue)
             .Build();
 
         await RespondWithModalAsync(modal);

@@ -2,11 +2,13 @@ namespace LouisStudyBot.Core.Services;
 
 public interface IStudySessionStore
 {
-    Task<StudyStartResult> StartSessionAsync(ulong guildId, ulong userId);
+    Task<StudyStartResult> StartSessionAsync(ulong guildId, ulong userId, string tag);
 
     Task<StudySession?> GetActiveSessionAsync(ulong guildId, ulong userId);
 
     Task<StudySession?> EndSessionAsync(ulong guildId, ulong userId, string summary, string tag);
+
+    Task<IReadOnlyList<string>> GetTagsAsync(ulong guildId, int limit);
 
     Task<IReadOnlyList<StudySession>> GetHistoryAsync(ulong guildId, ulong userId, int limit);
 

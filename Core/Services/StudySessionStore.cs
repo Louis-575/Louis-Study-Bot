@@ -10,7 +10,7 @@ public sealed class StudySessionStore(string dataPath) : IStudySessionStore
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly string _dataPath = Path.GetFullPath(dataPath);
 
-    public async Task<StudyStartResult> StartSessionAsync(ulong guildId, ulong userId)
+    public async Task<StudyStartResult> StartSessionAsync(ulong guildId, ulong userId, string tag)
     {
         await _lock.WaitAsync();
         try
@@ -32,7 +32,8 @@ public sealed class StudySessionStore(string dataPath) : IStudySessionStore
                 Id = Guid.NewGuid(),
                 GuildId = guildId,
                 UserId = userId,
-                StartedAtUtc = DateTimeOffset.UtcNow
+                StartedAtUtc = DateTimeOffset.UtcNow,
+                Tag = CleanTag(tag)
             };
 
             data.Sessions.Add(session);
@@ -89,11 +90,44 @@ public sealed class StudySessionStore(string dataPath) : IStudySessionStore
 
             active.EndedAtUtc = DateTimeOffset.UtcNow;
             active.Summary = CleanSummary(summary);
-            active.Tag = CleanTag(tag);
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                active.Tag = CleanTag(tag);
+            }
             active.EndReason = "Manual";
 
             await SaveAsync(data);
             return active;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task<IReadOnlyList<string>> GetTagsAsync(ulong guildId, int limit)
+    {
+        limit = Math.Clamp(limit, 1, 25);
+        await _lock.WaitAsync();
+        try
+        {
+            StudyDataFile data = await LoadAsync();
+            bool changed = AutoEndExpiredSessions(data, DateTimeOffset.UtcNow);
+            if (changed)
+            {
+                await SaveAsync(data);
+            }
+
+            return data.Sessions
+                .Where(session => session.GuildId == guildId)
+                .Select(session => CleanTag(session.Tag))
+                .Where(tag => !tag.Equals("Auto-ended", StringComparison.OrdinalIgnoreCase))
+                .Where(tag => !tag.Equals("Not Specified", StringComparison.OrdinalIgnoreCase))
+                .GroupBy(tag => tag, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.Key)
+                .OrderBy(tag => tag)
+                .Take(limit)
+                .ToList();
         }
         finally
         {
@@ -310,7 +344,7 @@ public sealed class StudySessionStore(string dataPath) : IStudySessionStore
     private static string CleanTag(string tag)
     {
         tag = tag.Trim();
-        return string.IsNullOrWhiteSpace(tag) ? "Uncategorized" : tag;
+        return string.IsNullOrWhiteSpace(tag) ? "Not Specified" : tag;
     }
 
     private sealed class StudyDataFile
