@@ -1,6 +1,6 @@
 # Louis Study Bot
 
-A simple Discord study tracker and timer bot. Discord bot boilerplate based off Plex Bot
+A simple Discord study tracker and timer bot. Discord bot boilerplate based off [Plex Bot](https://github.com/Louis-575/Louis-Plex-Bot)
 
 ## Features
 
